@@ -11,17 +11,22 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## DATA CLEANING & HANDLING MISSINGNESS 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 #libraries
 library(tidyverse)
 library(randomForest)
 library(gbm)
+library(pROC)
+library(tidyr)
+library(ggplot2)
 ```
 
 ```{r}
 #reading data
 stroke_data <- read.csv("stroke.csv", na.strings = c("N/A", "NA", ""))
+```
 
+```{r}
 head(stroke_data)
 str(stroke_data)
 dim(stroke_data)
@@ -124,7 +129,7 @@ summary(model_log)
 pred_prob_log <- predict(model_log, newdata = test_data, type = "response")
 
 # Converting probabilities to class (0/1) using 0.5 threshold
-pred_class_log <- ifelse(pred_prob_log > 0.5, 1, 0)
+pred_class_log <- ifelse(pred_prob_log > 0.2, 1, 0)
 ```
 
 ```{r}
@@ -147,7 +152,7 @@ print(model_rf)
 pred_prob_rf <- predict(model_rf, newdata = test_data, type = "prob")[,2]
 
 # Converting class
-pred_class_rf <- ifelse(pred_prob_rf > 0.5, 1, 0)
+pred_class_rf <- ifelse(pred_prob_rf > 0.2, 1, 0)
 pred_class_rf <- as.factor(pred_class_rf)
 ```
 
@@ -177,7 +182,7 @@ model_gbm <- gbm(stroke ~ .,data = train_gbm, distribution = "bernoulli", n.tree
 pred_prob_gbm <- predict(model_gbm, newdata = test_gbm, n.trees = 100, type = "response")
 
 # convert probabilities to class
-pred_class_gbm <- ifelse(pred_prob_gbm > 0.5, 1, 0)
+pred_class_gbm <- ifelse(pred_prob_gbm > 0.2, 1, 0)
 ```
 
 ```{r}
@@ -189,3 +194,96 @@ cm_gbm_standard <- table(
 
 cm_gbm_standard
 ```
+
+## MODEL COMPARISON
+
+```{r}
+#Logistic Regression 
+TP_log <- cm_log_standard["1","1"]
+FP_log <- cm_log_standard["1","0"]
+FN_log <- cm_log_standard["0","1"]
+TN_log <- cm_log_standard["0","0"]
+
+accuracy_log <- (TP_log + TN_log) / sum(cm_log_standard)
+sensitivity_log <- TP_log / (TP_log + FN_log)
+specificity_log <- TN_log / (TN_log + FP_log)
+
+auc_log <- auc(roc(test_data$stroke, pred_prob_log))
+
+accuracy_log
+sensitivity_log
+specificity_log
+auc_log
+```
+
+```{R}
+#Random Forest 
+TP_rf <- cm_rf_standard["1","1"]
+FP_rf <- cm_rf_standard["1","0"]
+FN_rf <- cm_rf_standard["0","1"]
+TN_rf <- cm_rf_standard["0","0"]
+
+accuracy_rf <- (TP_rf + TN_rf) / sum(cm_rf_standard)
+sensitivity_rf <- TP_rf / (TP_rf + FN_rf)
+specificity_rf <- TN_rf / (TN_rf + FP_rf)
+
+auc_rf <- auc(roc(test_data$stroke, pred_prob_rf))
+
+accuracy_rf
+sensitivity_rf
+specificity_rf
+auc_rf
+```
+
+```{r}
+#Gradient Boosting
+TP_gbm <- cm_gbm_standard["1","1"]
+FP_gbm <- cm_gbm_standard["1","0"]
+FN_gbm <- cm_gbm_standard["0","1"]
+TN_gbm <- cm_gbm_standard["0","0"]
+
+accuracy_gbm <- (TP_gbm + TN_gbm) / sum(cm_gbm_standard)
+sensitivity_gbm <- TP_gbm / (TP_gbm + FN_gbm)
+specificity_gbm <- TN_gbm / (TN_gbm + FP_gbm)
+
+auc_gbm <- auc(roc(test_gbm$stroke, pred_prob_gbm))
+
+accuracy_gbm
+sensitivity_gbm
+specificity_gbm
+auc_gbm
+```
+
+```{r}
+model_comparison <- data.frame(
+  Model = c("Logistic Regression", "Random Forest", "Gradient Boosting"),
+  Accuracy = c(accuracy_log, accuracy_rf, accuracy_gbm),
+  Sensitivity = c(sensitivity_log, sensitivity_rf, sensitivity_gbm),
+  Specificity = c(specificity_log, specificity_rf, specificity_gbm),
+  AUC = c(as.numeric(auc_log), as.numeric(auc_rf), as.numeric(auc_gbm))
+)
+model_comparison
+```
+
+```{r}
+comparison_long <- model_comparison %>%
+  pivot_longer(
+    cols = c(Accuracy, Sensitivity, Specificity, AUC),
+    names_to = "Metric",
+    values_to = "Value"
+  )
+ggplot(comparison_long, aes(x = Metric, y = Value, fill = Model)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    title = "Comparison of Prediction Model Performance",
+    x = "Performance Metric",
+    y = "Value"
+  ) +
+  theme_minimal()
+```
+
+
+
+
+
+
