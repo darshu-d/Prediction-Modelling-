@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 #libraries
 library(tidyverse)
+library(randomForest)
 ```
 
 ```{r}
@@ -132,10 +133,25 @@ cm_standard <- cm[c("1", "0"), c("1", "0")]
 cm_standard
 ```
 
-```{r}
+## RANDOM FOREST MODEL
 
+```{r}
+# Fit RFM
+model_rf <- randomForest(stroke ~ ., data = train_data, ntree = 100)
+summary(model_rf)
+
+# Predict probabilities on test data
+pred_prob_rf <- predict(model_rf, newdata = test_data, type = "prob")[,2]
+
+# Converting class
+pred_class_rf <- ifelse(pred_prob_rf > 0.5, 1, 0)
+pred_class_rf <- as.factor(pred_class_rf)
 ```
 
 ```{r}
-
+# Confusion matrix
+cm_rf <- table(Predicted = pred_class_rf, Actual = test_data$stroke)
+cm_rf_standard <- cm_rf[c("1", "0"), c("1", "0")]
+cm_rf_standard
 ```
+
