@@ -80,7 +80,38 @@ missing_summary <- data.frame(
 missing_summary
 ```
 
+## TRAIN & TEST DATA SPLIT
+
 ```{r}
+set.seed(123)
+```
+
+```{r}
+#70-30
+train_index <- sample(1:nrow(stroke_data), size = 0.7 * nrow(stroke_data))
+```
+
+```{r}
+#training data
+train_data <- stroke_data[train_index, ]
+dim(train_data)
+
+#testing data
+test_data  <- stroke_data[-train_index, ]
+dim(test_data)
+```
+```{r}
+#class distribution
+table(stroke_data$stroke)
+
+#class distribution in training data
+table(train_data$stroke)
+
+#class distribution in testing data
+table(test_data$stroke)
+```
+```{r}
+
 
 ```
 
@@ -92,4 +123,6 @@ missing_summary
 
 ```
 
+```{r}
 
+```next 
