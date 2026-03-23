@@ -1,0 +1,95 @@
+---
+title: "final assignment"
+author: "Shivadarshini Sreekanth"
+date: "2026-03-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## DATA CLEANING & HANDLING MISSINGNESS 
+
+```{r}
+#libraries
+library(tidyverse)
+```
+
+```{r}
+#reading data
+stroke_data <- read.csv("stroke.csv", na.strings = c("N/A", "NA", ""))
+
+head(stroke_data)
+str(stroke_data)
+dim(stroke_data)
+```
+
+```{r}
+#removing ID column
+stroke_data <- stroke_data %>%
+  select(-id)
+```
+
+```{r}
+#converting variables
+stroke_data <- stroke_data %>%
+  mutate(
+    gender = as.factor(gender),
+    hypertension = as.factor(hypertension),
+    heart_disease = as.factor(heart_disease),
+    ever_married = as.factor(ever_married),
+    work_type = as.factor(work_type),
+    Residence_type = as.factor(Residence_type),
+    smoking_status = as.factor(smoking_status),
+    stroke = as.factor(stroke)
+  )
+#bmi to numeric
+stroke_data$bmi <- as.numeric(stroke_data$bmi)
+```
+
+```{r}
+#missing values
+missing_count <- colSums(is.na(stroke_data))
+missing_percent <- round(colMeans(is.na(stroke_data)) * 100, 2)
+
+missing_summary <- data.frame(
+  Variable = names(stroke_data),
+  Missing_Count = missing_count,
+  Missing_Percent = missing_percent
+)
+missing_summary
+```
+
+```{r}
+#imputing missing BMI using median
+median_bmi <- median(stroke_data$bmi, na.rm = TRUE)
+stroke_data$bmi[is.na(stroke_data$bmi)] <- median_bmi
+```
+
+```{r}
+#missing values check after imputing 
+missing_count <- colSums(is.na(stroke_data))
+missing_percent <- round(colMeans(is.na(stroke_data)) * 100, 2)
+
+missing_summary <- data.frame(
+  Variable = names(stroke_data),
+  Missing_Count = missing_count,
+  Missing_Percent = missing_percent
+)
+missing_summary
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
