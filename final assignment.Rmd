@@ -15,6 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #libraries
 library(tidyverse)
 library(randomForest)
+library(gbm)
 ```
 
 ```{r}
@@ -155,3 +156,33 @@ cm_rf_standard <- cm_rf[c("1", "0"), c("1", "0")]
 cm_rf_standard
 ```
 
+## GRADIENT BOOSTING MODEL
+
+```{r}
+train_gbm <- train_data
+test_gbm  <- test_data
+
+train_gbm$stroke <- as.numeric(as.character(train_gbm$stroke))
+test_gbm$stroke  <- as.numeric(as.character(test_gbm$stroke))
+
+# Fit GBM
+model_gbm <- gbm(stroke ~ .,data = train_gbm, distribution = "bernoulli", n.trees = 100,
+  interaction.depth = 3, shrinkage = 0.01, n.minobsinnode = 10, verbose = FALSE)
+
+# predict probabilities
+pred_prob_gbm <- predict(model_gbm, newdata = test_gbm, n.trees = 100, type = "response")
+
+# convert probabilities to class
+pred_class_gbm <- ifelse(pred_prob_gbm > 0.5, 1, 0)
+```
+
+```{r}
+# confusion matrix
+cm_gbm <- table(Predicted = pred_class_gbm, Actual = test_gbm$stroke)
+cm_gbm_standard <- table(
+  Predicted = factor(pred_class_gbm, levels = c(1, 0)),
+  Actual = factor(test_gbm$stroke, levels = c(1, 0))
+)
+
+cm_gbm_standard
+```
