@@ -129,9 +129,11 @@ pred_class_log <- ifelse(pred_prob_log > 0.5, 1, 0)
 
 ```{r}
 #confusion matrix
-cm <- table(Predicted = pred_class_log, Actual = test_data$stroke)
-cm_standard <- cm[c("1", "0"), c("1", "0")]
-cm_standard
+cm_log_standard <- table(
+  Predicted = factor(pred_class_log, levels = c(1, 0)),
+  Actual = factor(test_data$stroke, levels = c(1, 0))
+)
+cm_log_standard
 ```
 
 ## RANDOM FOREST MODEL
@@ -139,7 +141,7 @@ cm_standard
 ```{r}
 # Fit RFM
 model_rf <- randomForest(stroke ~ ., data = train_data, ntree = 100)
-summary(model_rf)
+print(model_rf)
 
 # Predict probabilities on test data
 pred_prob_rf <- predict(model_rf, newdata = test_data, type = "prob")[,2]
@@ -151,8 +153,10 @@ pred_class_rf <- as.factor(pred_class_rf)
 
 ```{r}
 # Confusion matrix
-cm_rf <- table(Predicted = pred_class_rf, Actual = test_data$stroke)
-cm_rf_standard <- cm_rf[c("1", "0"), c("1", "0")]
+cm_rf_standard <- table(
+  Predicted = factor(pred_class_rf, levels = c(1, 0)),
+  Actual = factor(test_data$stroke, levels = c(1, 0))
+)
 cm_rf_standard
 ```
 
@@ -178,7 +182,6 @@ pred_class_gbm <- ifelse(pred_prob_gbm > 0.5, 1, 0)
 
 ```{r}
 # confusion matrix
-cm_gbm <- table(Predicted = pred_class_gbm, Actual = test_gbm$stroke)
 cm_gbm_standard <- table(
   Predicted = factor(pred_class_gbm, levels = c(1, 0)),
   Actual = factor(test_gbm$stroke, levels = c(1, 0))
