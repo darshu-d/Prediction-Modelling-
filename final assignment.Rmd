@@ -1,15 +1,22 @@
 ---
-title: "final assignment"
+title: "FINAL ASSIGNMENT"
 author: "Shivadarshini Sreekanth"
 date: "2026-03-16"
-output: html_document
+output: 
+ rmdformats::readthedown:
+    self_contained: true
+    highlight: "default"
+    thumbnails: false
+    fig_width: 7
+    fig_height: 5
+    toc_depth: 3
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## DATA CLEANING & HANDLING MISSINGNESS 
+# Data Cleaning & Handling Missingness
 
 ```{r message=FALSE, warning=FALSE}
 #libraries
@@ -87,7 +94,7 @@ missing_summary <- data.frame(
 missing_summary
 ```
 
-## TRAIN & TEST DATA SPLIT
+# Train & Test Data Split
 
 ```{r}
 set.seed(123)
@@ -118,7 +125,7 @@ table(train_data$stroke)
 table(test_data$stroke)
 ```
 
-## LOGISTIC REGRESSION MODEL
+# Logistic Regression Model
 
 ```{r}
 # Fit LRM
@@ -141,7 +148,7 @@ cm_log_standard <- table(
 cm_log_standard
 ```
 
-## RANDOM FOREST MODEL
+# Random Forest Model
 
 ```{r}
 # Fit RFM
@@ -165,7 +172,7 @@ cm_rf_standard <- table(
 cm_rf_standard
 ```
 
-## GRADIENT BOOSTING MODEL
+# Gradient Boosting Model
 
 ```{r}
 train_gbm <- train_data
@@ -195,7 +202,7 @@ cm_gbm_standard <- table(
 cm_gbm_standard
 ```
 
-## MODEL COMPARISON
+# Model Comparison
 
 ```{r}
 #Logistic Regression 
