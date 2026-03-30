@@ -1,6 +1,6 @@
 ---
 title: "FINAL ASSIGNMENT"
-author: "Shivadarshini Sreekanth"
+author: "Shivadarshini Sreekanth | 25234417"
 date: "2026-03-16"
 output: 
  rmdformats::readthedown:
@@ -39,11 +39,18 @@ str(stroke_data)
 dim(stroke_data)
 ```
 
+- The dataset contains 5110 observations and 12 variables.
+- Variables include demographics (age, gender), medical history (hypertension, heart disease), lifestyle (smoking), and outcome (stroke).
+- The outcome variable stroke is binary (0 = No stroke, 1 = Stroke).
+- Initial inspection shows missing values in BMI.
+
 ```{r}
 #removing ID column
 stroke_data <- stroke_data %>%
   select(-id)
 ```
+
+- The ID column was removed since it does not contribute to prediction.
 
 ```{r}
 #converting variables
@@ -62,6 +69,9 @@ stroke_data <- stroke_data %>%
 stroke_data$bmi <- as.numeric(stroke_data$bmi)
 ```
 
+- Categorical variables were converted into factors, which is necessary for classification models.
+- BMI was ensured to be numeric.
+
 ```{r}
 #missing values
 missing_count <- colSums(is.na(stroke_data))
@@ -75,11 +85,16 @@ missing_summary <- data.frame(
 missing_summary
 ```
 
+- Only BMI had missing values (201 cases, ~3.93%).
+- All other variables had no missing data.
+
 ```{r}
 #imputing missing BMI using median
 median_bmi <- median(stroke_data$bmi, na.rm = TRUE)
 stroke_data$bmi[is.na(stroke_data$bmi)] <- median_bmi
 ```
+
+- Missing BMI values were replaced using the median BMI.
 
 ```{r}
 #missing values check after imputing 
@@ -93,6 +108,8 @@ missing_summary <- data.frame(
 )
 missing_summary
 ```
+
+- After imputation, no missing values remain.
 
 # Train & Test Data Split
 
@@ -114,6 +131,12 @@ dim(train_data)
 test_data  <- stroke_data[-train_index, ]
 dim(test_data)
 ```
+
+Data split into:
+
+- 70% training (3577 observations)
+- 30% testing (1533 observations)
+
 ```{r}
 #class distribution
 table(stroke_data$stroke)
@@ -124,6 +147,13 @@ table(train_data$stroke)
 #class distribution in testing data
 table(test_data$stroke)
 ```
+
+Stroke cases:
+
+- No stroke (0): 4861
+- Stroke (1): 249
+
+This shows the data set includes severe class imbalance (~5% stroke cases).
 
 # Logistic Regression Model
 
@@ -139,6 +169,15 @@ pred_prob_log <- predict(model_log, newdata = test_data, type = "response")
 pred_class_log <- ifelse(pred_prob_log > 0.2, 1, 0)
 ```
 
+- The logistic regression model identified 
+Age (p < 0.001)
+→ Strong positive effect → older patients = higher stroke risk
+Hypertension (p = 0.025)
+→ Patients with hypertension are more likely to have stroke
+Average glucose level (p = 0.002)
+→ Higher glucose increases stroke risk 
+- However, most other variables were not statistically significant, and model performance was limited.
+
 ```{r}
 #confusion matrix
 cm_log_standard <- table(
@@ -147,6 +186,8 @@ cm_log_standard <- table(
 )
 cm_log_standard
 ```
+
+Model is good at identifying non-stroke patients, But poor at detecting stroke cases probably because the dataset is imbalanced.
 
 # Random Forest Model
 
@@ -163,6 +204,10 @@ pred_class_rf <- ifelse(pred_prob_rf > 0.2, 1, 0)
 pred_class_rf <- as.factor(pred_class_rf)
 ```
 
+- OOB error = 4.78%
+- Stroke class error = 98.8%
+Model almost ignores stroke class.
+
 ```{r}
 # Confusion matrix
 cm_rf_standard <- table(
@@ -171,6 +216,8 @@ cm_rf_standard <- table(
 )
 cm_rf_standard
 ```
+
+The model fails to detect stroke classes.
 
 # Gradient Boosting Model
 
@@ -202,6 +249,8 @@ cm_gbm_standard <- table(
 cm_gbm_standard
 ```
 
+Extremely poor stroke detection.
+
 # Model Comparison
 
 ```{r}
@@ -223,6 +272,8 @@ specificity_log
 auc_log
 ```
 
+Logistic regression model has the best balance but includes low sensitivity.
+
 ```{R}
 #Random Forest 
 TP_rf <- cm_rf_standard["1","1"]
@@ -242,6 +293,8 @@ specificity_rf
 auc_rf
 ```
 
+Random forest model has a good accuracy but it ignores stroke cases.
+
 ```{r}
 #Gradient Boosting
 TP_gbm <- cm_gbm_standard["1","1"]
@@ -260,6 +313,8 @@ sensitivity_gbm
 specificity_gbm
 auc_gbm
 ```
+
+Gradient boosting has the highest accuracy but worst sensitivity.
 
 ```{r}
 model_comparison <- data.frame(
@@ -289,7 +344,14 @@ ggplot(comparison_long, aes(x = Metric, y = Value, fill = Model)) +
   theme_minimal()
 ```
 
+### CONSCLUSION
 
+- The dataset showed severe class imbalance, which strongly affected model performance.
+- All models achieved high accuracy (>90%), but this was misleading due to imbalance.
+- Sensitivity was low across all models, indicating poor detection of stroke cases.
+- Logistic regression performed relatively better in identifying stroke cases compared to tree-based models.
+- Gradient boosting achieved the highest accuracy but failed to identify stroke patients effectively.
+- Therefore, logistic regression is the most suitable model in this analysis.
 
 
 
